@@ -293,9 +293,3 @@ The project is structured so you can add OpenTelemetry tracing and metrics aroun
 - Channel `send()` calls
 
 No instrumentation is included by default; add your preferred OTel SDK and wrap the above.
-
----
-
-## License
-
-MIT.
