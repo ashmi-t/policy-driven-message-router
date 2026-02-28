@@ -1,6 +1,6 @@
 # Configure Twilio (SMS) and Mailjet (Email)
 
-To send real SMS and email, add credentials and pass them into the app and worker. **Email** is sent via **Mailjet** only.
+To send real SMS and email, add credentials and pass them into the app and worker. **Email** is sent via **Mailjet** (API v3.1) only.
 
 ---
 
@@ -109,7 +109,7 @@ docker compose up -d
 | `TWILIO_FROM_NUMBER` | SMS | Twilio number (E.164, e.g. +15551234567) |
 | `MAILJET_API_KEY` | Email | Mailjet API key |
 | `MAILJET_API_SECRET` | Email | Mailjet secret key |
-| `MAILJET_FROM_EMAIL` | Email | Sender email |
+| `MAILJET_FROM_EMAIL` | Email | Sender email (must be verified in Mailjet) |
 | `MAILJET_FROM_NAME` | Email | Sender display name |
 
 If a provider is not configured, that channel will report "not configured" and the message may use other channels or go to DLQ after retries.

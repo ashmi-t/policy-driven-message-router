@@ -1,4 +1,4 @@
-"""Email channel via Mailjet."""
+"""Email delivery via Mailjet API v3.1."""
 import logging
 
 import httpx
@@ -12,8 +12,6 @@ MAILJET_SEND_URL = "https://api.mailjet.com/v3.1/send"
 
 
 class MailjetChannel(ChannelBase):
-    """Send email using Mailjet API v3.1."""
-
     @property
     def name(self) -> str:
         return "email"

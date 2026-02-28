@@ -1,4 +1,3 @@
-"""Models package."""
 from src.models.orm_models import (
     Base,
     Message,

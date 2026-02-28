@@ -1,4 +1,4 @@
-"""Seed default routing rules. Run after DB is created."""
+"""Seeds default rules on first run. Called from main lifespan; can also run manually."""
 import sys
 
 from src.db import SessionLocal

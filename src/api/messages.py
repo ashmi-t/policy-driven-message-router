@@ -1,4 +1,4 @@
-"""Message submit and query APIs."""
+"""Message submit and status endpoints."""
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,10 +18,6 @@ def submit_message(
     body: MessageCreate,
     db: Session = Depends(get_db),
 ) -> dict:
-    """
-    Submit a message for routing. Message is queued and dispatched asynchronously.
-    At least one of recipient_email or recipient_phone is required so the router has a channel to use.
-    """
     if not body.recipient_email and not body.recipient_phone:
         raise HTTPException(
             status_code=400,
@@ -53,7 +49,6 @@ def get_message_status(
     external_id: str,
     db: Session = Depends(get_db),
 ) -> MessageStatusResponse:
-    """Get message status and delivery state by external ID."""
     msg = db.query(Message).filter(Message.external_id == external_id).first()
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -87,7 +82,6 @@ def list_messages(
     state: str | None = None,
     db: Session = Depends(get_db),
 ) -> List[MessageStatusResponse]:
-    """List messages with optional state filter."""
     q = db.query(Message).order_by(Message.created_at.desc()).limit(limit)
     if state:
         q = q.filter(Message.state == state)

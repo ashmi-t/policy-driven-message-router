@@ -1,4 +1,4 @@
-"""Routing rules CRUD API."""
+"""Routing rules CRUD endpoints."""
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,7 +16,6 @@ def create_rule(
     body: RoutingRuleCreate,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Create a routing rule."""
     rule = RoutingRule(
         name=body.name,
         priority_order=body.priority_order,
@@ -34,7 +33,6 @@ def create_rule(
 
 @router.get("", response_model=List[dict])
 def list_rules(db: Session = Depends(get_db)) -> List[dict]:
-    """List all routing rules."""
     rules = db.query(RoutingRule).order_by(RoutingRule.priority_order, RoutingRule.id).all()
     return [
         {
@@ -53,7 +51,6 @@ def list_rules(db: Session = Depends(get_db)) -> List[dict]:
 
 @router.get("/{rule_id}", response_model=dict)
 def get_rule(rule_id: int, db: Session = Depends(get_db)) -> dict:
-    """Get a single rule by ID."""
     rule = db.query(RoutingRule).filter(RoutingRule.id == rule_id).first()
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -75,7 +72,6 @@ def update_rule(
     body: RoutingRuleCreate,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Update a routing rule."""
     rule = db.query(RoutingRule).filter(RoutingRule.id == rule_id).first()
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -93,7 +89,6 @@ def update_rule(
 
 @router.delete("/{rule_id}", status_code=204)
 def delete_rule(rule_id: int, db: Session = Depends(get_db)) -> None:
-    """Delete a routing rule."""
     rule = db.query(RoutingRule).filter(RoutingRule.id == rule_id).first()
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")

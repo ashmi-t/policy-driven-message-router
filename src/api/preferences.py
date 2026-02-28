@@ -16,7 +16,6 @@ def create_preference(
     body: UserPreferenceCreate,
     db: Session = Depends(get_db),
 ) -> dict:
-    """Create or update a user channel preference."""
     existing = (
         db.query(UserPreference)
         .filter(UserPreference.user_id == body.user_id, UserPreference.channel == body.channel)
@@ -46,7 +45,6 @@ def create_preference(
 
 @router.get("/{user_id}", response_model=List[dict])
 def list_preferences(user_id: str, db: Session = Depends(get_db)) -> List[dict]:
-    """List preferences for a user."""
     prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).all()
     return [
         {

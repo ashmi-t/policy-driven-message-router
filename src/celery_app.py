@@ -1,4 +1,4 @@
-"""Celery application for async message dispatch."""
+"""Celery app. Tasks live in src.tasks; dispatch_message runs on the 'dispatch' queue."""
 from celery import Celery
 from src.config import settings
 

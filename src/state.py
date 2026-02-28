@@ -1,8 +1,7 @@
-"""Message lifecycle state machine and transitions."""
+"""Enforces valid state transitions for messages and deliveries."""
 from src.models.orm_models import Message, MessageDelivery, MessageLifecycleState
 from sqlalchemy.orm import Session
 
-# Valid transitions for message state
 TRANSITIONS = {
     MessageLifecycleState.PENDING: [MessageLifecycleState.QUEUED],
     MessageLifecycleState.QUEUED: [MessageLifecycleState.DISPATCHING],
@@ -12,7 +11,7 @@ TRANSITIONS = {
         MessageLifecycleState.DLQ,
     ],
     MessageLifecycleState.DELIVERED: [],
-    MessageLifecycleState.FAILED: [MessageLifecycleState.QUEUED],  # retry
+    MessageLifecycleState.FAILED: [MessageLifecycleState.QUEUED],
     MessageLifecycleState.DLQ: [],
 }
 

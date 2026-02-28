@@ -1,4 +1,4 @@
-"""SMS channel via Twilio."""
+"""SMS delivery via Twilio."""
 import logging
 from typing import Optional
 
@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class SMSChannel(ChannelBase):
-    """Send SMS using Twilio API."""
-
     @property
     def name(self) -> str:
         return "sms"

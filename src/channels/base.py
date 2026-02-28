@@ -1,14 +1,11 @@
+"""Abstract channel interface and registry. Add new channels by implementing ChannelBase and registering."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from src.models.orm_models import ChannelType
-
 
 @dataclass
 class ChannelResult:
-    """Result of a single send attempt."""
-
     success: bool
     provider_id: Optional[str] = None
     error: Optional[str] = None
@@ -16,36 +13,28 @@ class ChannelResult:
 
 @dataclass
 class Payload:
-    """Normalized payload for sending."""
-
-    recipient: str  # email address or phone
+    recipient: str
     subject: Optional[str] = None
     body: str = ""
     template_context: Optional[Dict] = None
 
 
 class ChannelBase(ABC):
-    """Interface for delivery channels. New channels implement this and register."""
-
     @property
     @abstractmethod
     def name(self) -> str:
-        """Channel identifier (e.g. 'email', 'sms')."""
         pass
 
     @abstractmethod
     def send(self, payload: Payload) -> ChannelResult:
-        """Send the message. Returns success/failure and optional provider id."""
         pass
 
     def is_available(self) -> bool:
-        """Whether the channel is configured and available. Override if needed."""
+        """Override to check credentials/config. Used to skip unconfigured channels."""
         return True
 
 
 class ChannelRegistry:
-    """Register and resolve channels by name."""
-
     def __init__(self) -> None:
         self._channels: Dict[str, ChannelBase] = {}
 
@@ -60,6 +49,3 @@ class ChannelRegistry:
         if ch and ch.is_available():
             return ch
         return None
-
-    def list_channels(self) -> list[str]:
-        return list(self._channels.keys())

@@ -1,4 +1,4 @@
-"""FastAPI application entrypoint."""
+"""FastAPI app. Creates tables and seeds rules on startup."""
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,12 +12,10 @@ from src.models.orm_models import Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create tables and seed default rules on startup."""
     Base.metadata.create_all(bind=engine)
     from src.seed_rules import seed
     seed()
     yield
-    # shutdown if needed
 
 
 app = FastAPI(

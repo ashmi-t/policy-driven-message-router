@@ -1,14 +1,14 @@
-"""Database session and engine."""
+"""Database engine and session factory."""
 import os
-from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.config import settings
-from src.models.orm_models import Base  # noqa: F401 - ensure models registered
+from src.models.orm_models import Base  # noqa: F401 - registers models with SQLAlchemy
 
+# SQLite needs special handling: no connection pooling, allow multi-thread access
 _connect_args = {}
 _pool_class = None
 if settings.database_url.startswith("sqlite"):
@@ -30,18 +30,5 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
-    finally:
-        db.close()
-
-
-@contextmanager
-def get_db_context() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
     finally:
         db.close()

@@ -1,4 +1,4 @@
-"""Celery tasks: async dispatch with retry and DLQ."""
+"""Async message dispatch. Routes, sends, retries, and moves to DLQ when max retries exceeded."""
 import logging
 from typing import List
 
@@ -73,10 +73,6 @@ def _send_one(db: Session, message: Message, delivery: MessageDelivery) -> bool:
 
 @app.task(bind=True, max_retries=0)
 def dispatch_message(self, message_id: int) -> None:
-    """
-    Load message, resolve routing, create deliveries, send with retry.
-    Fallback to fallback_channels if primary channels fail. Move to DLQ after max_retries.
-    """
     db = SessionLocal()
     try:
         message = db.query(Message).filter(Message.id == message_id).first()
@@ -100,8 +96,7 @@ def dispatch_message(self, message_id: int) -> None:
             db.commit()
             return
 
-        # Create one delivery per channel (primary only for now).
-        # Store IDs (not ORM instances) to avoid DetachedInstanceError after commit.
+        # Use IDs instead of ORM objects—session closes after commit, objects detach
         delivery_ids: list[int] = []
         for ch in channels:
             d = _create_delivery(db, message.id, ch, max_retries)
@@ -129,7 +124,6 @@ def dispatch_message(self, message_id: int) -> None:
             db.commit()
             return
 
-        # Try fallback channels
         for ch in fallback_channels:
             if ch in [d.channel for d in message.deliveries]:
                 continue
@@ -147,7 +141,6 @@ def dispatch_message(self, message_id: int) -> None:
                 return
             db.commit()
 
-        # All failed: retry or DLQ
         db = SessionLocal()
         message = db.query(Message).filter(Message.id == message_id).first()
         current_retries = max((delivery.retry_count for delivery in message.deliveries), default=0)

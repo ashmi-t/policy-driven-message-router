@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models and message lifecycle state."""
+"""SQLAlchemy ORM models."""
 from datetime import datetime
 from enum import Enum as PyEnum
 from uuid import uuid4
@@ -19,8 +19,6 @@ Base = declarative_base()
 
 
 class MessageLifecycleState(str, PyEnum):
-    """State machine for message lifecycle."""
-
     PENDING = "pending"
     QUEUED = "queued"
     DISPATCHING = "dispatching"
@@ -30,8 +28,6 @@ class MessageLifecycleState(str, PyEnum):
 
 
 class MessageType(str, PyEnum):
-    """Supported message types for routing rules."""
-
     CRITICAL_ALERT = "critical_alert"
     PROMOTION = "promotion"
     TRANSACTIONAL = "transactional"
@@ -39,8 +35,6 @@ class MessageType(str, PyEnum):
 
 
 class Priority(str, PyEnum):
-    """Message priority."""
-
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -48,8 +42,6 @@ class Priority(str, PyEnum):
 
 
 class ChannelType(str, PyEnum):
-    """Delivery channel identifiers."""
-
     EMAIL = "email"
     SMS = "sms"
 
@@ -59,8 +51,6 @@ def generate_uuid():
 
 
 class Message(Base):
-    """Incoming message to be routed and delivered."""
-
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -82,18 +72,18 @@ class Message(Base):
 
 
 class MessageDelivery(Base):
-    """Per-channel delivery attempt (one message can have multiple deliveries)."""
+    """One delivery attempt per channel. A message can have multiple deliveries (e.g. SMS + email)."""
 
     __tablename__ = "message_deliveries"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     message_id = Column(Integer, ForeignKey("messages.id"), nullable=False)
-    channel = Column(String(32), nullable=False)  # ChannelType value
+    channel = Column(String(32), nullable=False)
     state = Column(String(32), default=MessageLifecycleState.PENDING.value)
     retry_count = Column(Integer, default=0)
     max_retries = Column(Integer, default=3)
     last_error = Column(Text)
-    provider_id = Column(String(256))  # External ID from Mailjet/Twilio
+    provider_id = Column(String(256))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -101,19 +91,16 @@ class MessageDelivery(Base):
 
 
 class RoutingRule(Base):
-    """Rule for routing: conditions + channels + retry policy."""
+    """Maps conditions (message type, priority, time) to channels and retry policy."""
 
     __tablename__ = "routing_rules"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), nullable=False)
-    priority_order = Column(Integer, default=0)  # Lower = evaluated first
+    priority_order = Column(Integer, default=0)
     active = Column(Boolean, default=True)
-    # Conditions (JSON): message_types[], priorities[], time_windows, etc.
     conditions = Column(JSON, nullable=False)
-    # Channels to use: ["email"], ["sms"], ["email", "sms"]
-    channels = Column(JSON, nullable=False)  # list of channel names
-    # Fallback: if primary channel fails, try these
+    channels = Column(JSON, nullable=False)
     fallback_channels = Column(JSON, default=list)
     max_retries = Column(Integer, default=3)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -121,7 +108,7 @@ class RoutingRule(Base):
 
 
 class UserPreference(Base):
-    """User preferences for channel and time (used by routing)."""
+    """Per-user, per-channel: enabled, quiet hours, allowed message types."""
 
     __tablename__ = "user_preferences"
 
@@ -129,9 +116,8 @@ class UserPreference(Base):
     user_id = Column(String(128), nullable=False, index=True)
     channel = Column(String(32), nullable=False)
     enabled = Column(Boolean, default=True)
-    # Optional: quiet hours or allowed time windows
-    quiet_hours_start = Column(String(5))  # "22:00"
-    quiet_hours_end = Column(String(5))    # "08:00"
-    message_types_allowed = Column(JSON, default=list)  # empty = all
+    quiet_hours_start = Column(String(5))
+    quiet_hours_end = Column(String(5))
+    message_types_allowed = Column(JSON, default=list)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
